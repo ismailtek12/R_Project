@@ -24,7 +24,12 @@ Yaratacağınız data.frame nesnesinin sütun isimleri Excel'de bulunan değişk
 
 ```{r}
 # Excel dosyasındaki ham verileri data.frame formatında R'a ithal edin
-# havaK <- <kodu tamamla>
+library(readxl)
+havaK <- read_excel("VeriBursa.xlsx")
+View(havaK)
+rapor <- head(havaK,10)
+print(rapor)
+ 
 ```
 
 ## Egzersiz 2 - Veri Kalite Kontrolü
@@ -32,20 +37,32 @@ Yaratacağınız data.frame nesnesinin sütun isimleri Excel'de bulunan değişk
 ### Zaman sütunu
 Zaman değerlerini içeren sütunun isminin **Time** olmasını sağlayın
 ```{r}
-#  <kodu tamamla>
+names(havaK)[names(havaK) == "Tarih"] <- "Time"
+str(havaK$Time)
 ```
 
 
 *havaK$Time* adlı değişkendeki bütün verilerin **POSIXct** tipinde olmasını sağlayın. 
 
 ```{r}
-# <kodu tamamla>
+class(havaK$Time)
+havaK$Time <- as.POSIXct(havaK$Time, format="%d/%m/%Y %H:%M:%S")
+class(havaK$Time)
 ```
 
 *Time* sütunu dışındaki bütün sütunların tipinin **numeric** olmasını sağlayın. *havaK* nesnesinin ilk 10 satırının raporda gözükmesini sağlayın.
 
 ```{r}
-# <kodu tamamla>
+names(havaK)[names(havaK) == "Bursa"] <- "PM10"
+names(havaK)[names(havaK) == "...3"] <- "PM2.5"
+havaK <- havaK[-1,]
+havaK$PM10 <- ifelse(havaK$PM10=="-",NA,havaK$PM10)
+havaK$PM2.5 <- gsub(",",".",havaK$PM2.5)
+havaK$PM10 <- gsub(",",".",havaK$PM10)
+havaK$PM10 <- as.numeric(havaK$PM10)
+havaK$PM2.5 <- as.numeric((havaK$PM2.5))
+rapor <- head(havaK,10)
+print(rapor)
 ```
 
 ## Egzersiz 3 - Veri Görselleme
@@ -56,5 +73,11 @@ Zaman değerlerini içeren sütunun isminin **Time** olmasını sağlayın
 
 ```{r}
 library(dygraphs)
-#  <kodu tamamla>
+graph <- dygraph(havaK)
+graph <- dyAxis(graph, "y", "PM10", label = "PM10")
+graph <- dyAxis(graph, "y", "PM2.5", label = "PM2.5", independentTicks = TRUE)
+graph <- dyOptions(graph, stackedGraph = FALSE)
+graph
+
+
 ```
